@@ -39,7 +39,7 @@ export default function Home() {
           onPress={() => router.push('/alert')}
         >
           <Ionicons name="alert-circle" size={30} color="#fff" />
-          <Text style={styles.cardText}>Send Alert</Text>
+          <Text style={styles.cardText}>Alerts</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -52,9 +52,17 @@ export default function Home() {
 
         <TouchableOpacity
           style={[styles.card, { backgroundColor: '#00897b' }]}
-          onPress={() => router.push('/admin')}
+          onPress={() => router.push('/contacts')}
         >
           <Ionicons name="people" size={30} color="#fff" />
+          <Text style={styles.cardText}>Contacts</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.card, { backgroundColor: '#9c27b0' }]}
+          onPress={() => router.push('/admin')}
+        >
+          <Ionicons name="shield-checkmark" size={30} color="#fff" />
           <Text style={styles.cardText}>admin</Text>
         </TouchableOpacity>
 
@@ -64,6 +72,14 @@ export default function Home() {
         >
           <Ionicons name="map" size={30} color="#fff" />
           <Text style={styles.cardText}>Map</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={[styles.card, { backgroundColor: '#4db6ac' }]}
+          onPress={() => router.push('/reports')}
+        >
+        <Ionicons name="document-text-outline" size={30} color="#fff" />
+        <Text style={styles.cardText}>Reports</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -94,25 +110,21 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   title: {
-    fontSize: 26,
+    fontSize: 30,
     fontWeight: 'bold',
     color: '#00796b',
     textAlign: 'center',
     marginBottom: 5,
   },
   subtitle: {
-    fontSize: 16,
+    fontSize: 18,
     color: '#555',
     textAlign: 'center',
     marginBottom: 20,
   },
-  image: {
-    width: '100%',
-    height: 180,
-    marginBottom: 20,
-  },
+ 
   sectionHeader: {
-    fontSize: 20,
+    fontSize: 22,
     fontWeight: '600',
     marginBottom: 10,
     marginTop: 20,
@@ -120,14 +132,15 @@ const styles = StyleSheet.create({
   },
   instructions: {
     backgroundColor: '#fff',
-    padding: 15,
+    padding: 16,
     borderRadius: 10,
     marginBottom: 25,
-    elevation: 2,
+    elevation:10
   },
   instruction: {
-    fontSize: 14,
-    marginBottom: 8,
+    fontSize: 18,
+    fontWeight: 800,
+    marginBottom:20,
     color: '#444',
   },
   grid: {
@@ -150,7 +163,8 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   backButton: {
-    marginTop: 30,
+    marginTop: 20,
+    marginBottom: 40,
     backgroundColor: '#ccc',
     padding: 12,
     borderRadius: 10,
