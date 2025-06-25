@@ -1,6 +1,8 @@
 require("dotenv").config(); // Load environment variables
 const express = require("express");
 const cors = require("cors");
+const http = require("http"); // Needed for socket.io
+const socketIO = require("socket.io");
 const sequelize = require("./config/database");
 
 // Import models (Ensures Sequelize recognizes them)
@@ -20,6 +22,15 @@ const reportRoutes = require("./routes/reportRoutes");
 
 // Initialize Express app
 const app = express();
+const server = http.createServer(app); // Create HTTP server
+const io = socketIO(server, {
+  cors: {
+    origin: "*", // Allow frontend connection
+  },
+});
+
+// Attach io to the app for global access in controllers
+app.set("io", io);
 
 // Middleware
 app.use(cors());
@@ -38,16 +49,25 @@ app.use((req, res) => {
   res.status(404).json({ error: "Route not found" });
 });
 
+// Socket.IO connection log (optional)
+io.on("connection", (socket) => {
+  console.log("🟢 A client connected:", socket.id);
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Client disconnected:", socket.id);
+  });
+});
+
 // Sync Database and Start Server
 sequelize
   .sync({ alter: true }) // Ensures tables match models
   .then(() => {
-    console.log("Database connected and models synchronized.");
+    console.log("✅ Database connected and models synchronized.");
     const PORT = process.env.PORT || 5000;
-    app.listen(PORT, () => {
-      console.log(`Server is running on port ${PORT}`);
+    server.listen(PORT, () => {
+      console.log(`🚀 Server is running on port ${PORT}`);
     });
   })
   .catch((error) => {
-    console.error("Error syncing database:", error);
+    console.error("❌ Error syncing database:", error);
   });
