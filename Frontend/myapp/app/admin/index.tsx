@@ -1,83 +1,68 @@
-import React from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
-import { FontAwesome5, MaterialIcons, Ionicons } from '@expo/vector-icons';
-import CreateCommunityAlert from './comalert'; // ✅ Import the component
+// admin/index.tsx
 
-export default function AdminPage() {
+import React, { useState } from 'react';
+import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert } from 'react-native';
+import { useRouter } from 'expo-router';
+
+export default function AdminLogin() {
+  const [code, setCode] = useState('');
+  const router = useRouter();
+
+  const handleLogin = () => {
+    if (code === 'admin123') {
+      router.push('/admin/dash');
+    } else {
+      Alert.alert('Access Denied', 'Invalid admin code.');
+    }
+  };
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Text style={styles.header}>👮 Admin Dashboard</Text>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>🔧 Manage Users</Text>
-        <TouchableOpacity style={styles.button}>
-          <FontAwesome5 name="users-cog" size={20} color="#fff" />
-          <Text style={styles.buttonText}>User Settings</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>📊 View Reports</Text>
-        <TouchableOpacity style={styles.button}>
-          <MaterialIcons name="assessment" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Security Reports</Text>
-        </TouchableOpacity>
-      </View>
-
-      <View style={styles.card}>
-        <Text style={styles.sectionTitle}>📢 Send Alerts</Text>
-        <TouchableOpacity style={styles.button}>
-          <Ionicons name="alert-circle" size={20} color="#fff" />
-          <Text style={styles.buttonText}>Send Emergency Alert</Text>
-        </TouchableOpacity>
-      </View>
-
-      {/* ✅ Add CreateCommunityAlert form below */}
-      <CreateCommunityAlert />
-    </ScrollView>
+    <View style={styles.container}>
+      <Text style={styles.title}>🔐 Admin Login</Text>
+      <TextInput
+        placeholder="Enter Admin Code"
+        secureTextEntry
+        value={code}
+        onChangeText={setCode}
+        style={styles.input}
+      />
+      <TouchableOpacity style={styles.button} onPress={handleLogin}>
+        <Text style={styles.buttonText}>Login</Text>
+      </TouchableOpacity>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#e3f2fd',
+    backgroundColor: '#ede7f6',
+    justifyContent: 'center',
     padding: 20,
   },
-  header: {
-    fontSize: 28,
+  title: {
+    fontSize: 26,
     fontWeight: 'bold',
-    color: '#1565c0',
-    marginBottom: 20,
+    marginBottom: 30,
+    color: '#6a1b9a',
     textAlign: 'center',
   },
-  card: {
-    backgroundColor: '#ffffff',
-    padding: 18,
-    borderRadius: 12,
+  input: {
+    backgroundColor: '#fff',
+    padding: 12,
+    borderRadius: 10,
     marginBottom: 20,
-    elevation: 3,
-  },
-  sectionTitle: {
-    fontSize: 18,
-    fontWeight: '600',
-    marginBottom: 12,
-    color: '#333',
+    fontSize: 16,
   },
   button: {
-    flexDirection: 'row',
-    backgroundColor: '#0288d1',
-    paddingVertical: 12,
-    paddingHorizontal: 18,
-    borderRadius: 8,
+    backgroundColor: '#7b1fa2',
+    padding: 15,
+    borderRadius: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    gap: 10,
   },
   buttonText: {
     color: '#fff',
     fontSize: 16,
-    marginLeft: 10,
-    fontWeight: '600',
+    fontWeight: 'bold',
   },
 });

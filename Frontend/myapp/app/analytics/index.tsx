@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,58 +6,98 @@ import { useRouter } from 'expo-router';
 export default function Analytics() {
   const router = useRouter();
 
+  const [showTodayDetails, setShowTodayDetails] = useState(false);
+  const [showWeekDetails, setShowWeekDetails] = useState(false);
+  const [showYearDetails, setShowYearDetails] = useState(false);
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
       <Text style={styles.title}>📊 Analytics Dashboard</Text>
 
+      <Text style={styles.introText}>
+        View the trend of alerts. Tap a card for more detailed insights.
+      </Text>
+      <Text style={styles.arrow}>👇</Text>
+
+      {/* Alert Summary Cards */}
       <View style={styles.row}>
-        <View style={[styles.statCard, { backgroundColor: '#f06292' }]}>
-          <Ionicons name="alert" size={30} color="#fff" />
-          <Text style={styles.statNumber}>124</Text>
-          <Text style={styles.statLabel}>Total Alerts</Text>
-        </View>
+        <TouchableOpacity
+          style={[styles.statCard, { backgroundColor: '#f06292' }]}
+          onPress={() => setShowTodayDetails(!showTodayDetails)}
+        >
+          <Ionicons name="sunny" size={30} color="#fff" />
+          <Text style={styles.statNumber}>17</Text>
+          <Text style={styles.statLabel}>Alerts today</Text>
+        </TouchableOpacity>
 
-        <View style={[styles.statCard, { backgroundColor: '#64b5f6' }]}>
-          <MaterialIcons name="local-hospital" size={30} color="#fff" />
-          <Text style={styles.statNumber}>35</Text>
-          <Text style={styles.statLabel}>Medical</Text>
-        </View>
+        <TouchableOpacity
+          style={[styles.statCard, { backgroundColor: '#64b5f6' }]}
+          onPress={() => setShowWeekDetails(!showWeekDetails)}
+        >
+          <MaterialIcons name="calendar-today" size={30} color="#fff" />
+          <Text style={styles.statNumber}>89</Text>
+          <Text style={styles.statLabel}>This Week</Text>
+        </TouchableOpacity>
       </View>
 
-      <View style={styles.row}>
-        <View style={[styles.statCard, { backgroundColor: '#81c784' }]}>
-          <MaterialIcons name="security" size={30} color="#fff" />
-          <Text style={styles.statNumber}>65</Text>
-          <Text style={styles.statLabel}>Security</Text>
+      <TouchableOpacity
+        style={[styles.statCard, { backgroundColor: '#81c784', marginBottom: 15 }]}
+        onPress={() => setShowYearDetails(!showYearDetails)}
+      >
+        <FontAwesome5 name="calendar" size={30} color="#fff" />
+        <Text style={styles.statNumber}>312</Text>
+        <Text style={styles.statLabel}>This Year</Text>
+      </TouchableOpacity>
+
+      {/* Today Details */}
+      {showTodayDetails && (
+        <View style={styles.detailBox}>
+          <Text style={styles.detailHeader}>📍 Places With Most Alerts Today:</Text>
+          <Text style={styles.detailItem}>• Umoja Estate - 6 alerts</Text>
+          <Text style={styles.detailItem}>• CBD - 4 alerts</Text>
+
+          <Text style={styles.detailHeader}>📍 Least Alerts Today:</Text>
+          <Text style={styles.detailItem}>• Eldoville - 1 alert</Text>
         </View>
+      )}
 
-        <View style={[styles.statCard, { backgroundColor: '#ffb74d' }]}>
-          <FontAwesome5 name="fire" size={30} color="#fff" />
-          <Text style={styles.statNumber}>24</Text>
-          <Text style={styles.statLabel}>Fire</Text>
+      {/* Week Details */}
+      {showWeekDetails && (
+        <View style={styles.detailBox}>
+          <Text style={styles.detailHeader}>🗓 Weekly Breakdown:</Text>
+          <Text style={styles.detailItem}>• Monday - 10</Text>
+          <Text style={styles.detailItem}>• Tuesday - 15</Text>
+          <Text style={styles.detailItem}>• Wednesday - 12</Text>
+          <Text style={styles.detailItem}>• Thursday - 8</Text>
+          <Text style={styles.detailItem}>• Friday - 18</Text>
+          <Text style={styles.detailItem}>• Saturday - 6</Text>
+          <Text style={styles.detailItem}>• Sunday - 20 (🔺 Most)</Text>
+
+          <Text style={styles.detailHeader}>📍 Top Alert Area This Week:</Text>
+          <Text style={styles.detailItem}>• Kibera</Text>
+
+          <Text style={styles.detailHeader}>📍 Least Alert Area:</Text>
+          <Text style={styles.detailItem}>• Karen</Text>
         </View>
-      </View>
+      )}
 
-      <Text style={styles.sectionTitle}>🕒 Alert Trends</Text>
-      <View style={styles.trendBox}>
-        <Text style={styles.trendText}>
-          Most alerts are sent between <Text style={{ fontWeight: 'bold' }}>7 PM - 9 PM</Text>.
-        </Text>
-        <Text style={styles.trendText}>
-          🔺 14% increase compared to last week.
-        </Text>
-      </View>
+      {/* Year Details */}
+      {showYearDetails && (
+        <View style={styles.detailBox}>
+          <Text style={styles.detailHeader}>📆 Yearly Summary:</Text>
+          <Text style={styles.detailItem}>• January - 22</Text>
+          <Text style={styles.detailItem}>• February - 18</Text>
+          <Text style={styles.detailItem}>• March - 35</Text>
+          <Text style={styles.detailItem}>• April - 41 (🔺 Most)</Text>
+          <Text style={styles.detailItem}>• May - 9 (🔻 Least)</Text>
 
-      <Text style={styles.sectionTitle}>📈 Weekly Summary</Text>
-      <View style={styles.barChart}>
-        <Text style={styles.barItem}>Mon - ▓▓▓▓▓▓</Text>
-        <Text style={styles.barItem}>Tue - ▓▓▓▓▓▓▓▓</Text>
-        <Text style={styles.barItem}>Wed - ▓▓▓▓▓</Text>
-        <Text style={styles.barItem}>Thu - ▓▓▓▓▓▓▓</Text>
-        <Text style={styles.barItem}>Fri - ▓▓▓▓▓▓▓▓▓</Text>
-        <Text style={styles.barItem}>Sat - ▓▓▓</Text>
-        <Text style={styles.barItem}>Sun - ▓▓▓▓▓▓▓</Text>
-      </View>
+          <Text style={styles.detailHeader}>📍 Top Alert Area This Year:</Text>
+          <Text style={styles.detailItem}>• Mathare</Text>
+
+          <Text style={styles.detailHeader}>📍 Least Alert Area:</Text>
+          <Text style={styles.detailItem}>• Runda</Text>
+        </View>
+      )}
 
       <TouchableOpacity style={styles.backButton} onPress={() => router.push('/home')}>
         <Text style={styles.backButtonText}>← Back to Home</Text>
@@ -77,6 +117,19 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     color: '#673ab7',
     textAlign: 'center',
+    marginBottom: 10,
+  },
+  introText: {
+    fontSize: 16,
+    color: '#333',
+    textAlign: 'center',
+    marginBottom: 5,
+    fontWeight: '500',
+    paddingHorizontal: 10,
+  },
+  arrow: {
+    fontSize: 24,
+    textAlign: 'center',
     marginBottom: 20,
   },
   row: {
@@ -90,7 +143,7 @@ const styles = StyleSheet.create({
     padding: 15,
     justifyContent: 'center',
     alignItems: 'center',
-    elevation: 2,
+    elevation: 3,
   },
   statNumber: {
     fontSize: 22,
@@ -102,36 +155,26 @@ const styles = StyleSheet.create({
     color: '#fff',
     fontSize: 14,
     marginTop: 3,
+    textAlign: 'center',
   },
-  sectionTitle: {
-    fontSize: 20,
-    fontWeight: '600',
-    color: '#333',
-    marginTop: 25,
-    marginBottom: 10,
-  },
-  trendBox: {
-    backgroundColor: '#e1bee7',
-    padding: 15,
+  detailBox: {
+    backgroundColor: '#e0f7fa',
     borderRadius: 10,
+    padding: 15,
     marginBottom: 20,
   },
-  trendText: {
-    fontSize: 14,
-    color: '#4a148c',
+  detailHeader: {
+    fontSize: 16,
+    fontWeight: 'bold',
+    color: '#006064',
+    marginTop: 10,
     marginBottom: 5,
   },
-  barChart: {
-    backgroundColor: '#fff8e1',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 30,
-  },
-  barItem: {
+  detailItem: {
     fontSize: 14,
-    fontFamily: 'monospace',
-    marginBottom: 5,
-    color: '#333',
+    color: '#004d40',
+    marginLeft: 10,
+    marginBottom: 3,
   },
   backButton: {
     backgroundColor: '#ccc',

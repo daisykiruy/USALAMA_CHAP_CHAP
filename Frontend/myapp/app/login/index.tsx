@@ -1,62 +1,67 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   StyleSheet,
-  Alert
+  Alert,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useRouter } from 'expo-router';
 
-export default function Login() {
+export default function LoginScreen() {
   const router = useRouter();
   const [isLogin, setIsLogin] = useState(true);
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
+  const [email, setEmail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [role, setRole] = useState('Member');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  // Load stored credentials to display in placeholders
-  useEffect(() => {
-    const loadStoredCredentials = async () => {
-      try {
-        const savedUser = await AsyncStorage.getItem('user');
-        if (savedUser) {
-          const parsed = JSON.parse(savedUser);
-          setUsername(parsed.username || '');
-          setPassword(parsed.password || '');
-        }
-      } catch (error) {
-        console.error('Error loading saved user:', error);
-      }
-    };
+  const API_URL = 'http://10.110.41.12:5000/api/auth';
 
-    loadStoredCredentials();
-  }, []);
-
-  const handleSubmit = async () => {
-    if (!username || !password) {
-      Alert.alert('Error', 'Please enter both fields');
+  const handleAuth = async () => {
+    if (!email || !password || (!isLogin && (!name || !phone))) {
+      Alert.alert('Error', 'Please fill in all required fields');
       return;
     }
 
-    if (isLogin) {
-      const savedUser = await AsyncStorage.getItem('user');
-      if (savedUser) {
-        const { username: savedUsername, password: savedPassword } = JSON.parse(savedUser);
-        if (username === savedUsername && password === savedPassword) {
-          router.replace('/home');
-        } else {
-          Alert.alert('Invalid Credentials');
-        }
-      } else {
-        Alert.alert('No user found. Please sign up.');
+    try {
+      const endpoint = isLogin ? `${API_URL}/login` : `${API_URL}/register`;
+      const payload = isLogin
+        ? { email, password }
+        : { name, email, phone, password, role };
+
+      const response = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || 'Something went wrong');
       }
-    } else {
-      await AsyncStorage.setItem('user', JSON.stringify({ username, password }));
-      Alert.alert('Success', 'Account created! You can now log in.');
-      setIsLogin(true);
+
+      if (isLogin) {
+        await AsyncStorage.setItem('token', data.token);
+        await AsyncStorage.setItem('user', JSON.stringify(data.user));
+        await AsyncStorage.setItem('userId', String(data.user.id)); // ✅ store userId for use elsewhere
+        Alert.alert('Success', 'Logged in!');
+        router.replace('/home');
+      } else {
+        Alert.alert('Success', 'Registered! You can now log in.');
+        setIsLogin(true);
+        setName('');
+        setEmail('');
+        setPhone('');
+        setPassword('');
+      }
+    } catch (error: any) {
+      Alert.alert('Error', error.message);
     }
   };
 
@@ -64,20 +69,39 @@ export default function Login() {
     <View style={styles.container}>
       <Text style={styles.header}>{isLogin ? 'Login' : 'Sign Up'}</Text>
 
+      {!isLogin && (
+        <>
+          <TextInput
+            placeholder="Full Name"
+            value={name}
+            onChangeText={setName}
+            style={styles.input}
+          />
+          <TextInput
+            placeholder="Phone Number"
+            value={phone}
+            onChangeText={setPhone}
+            style={styles.input}
+            keyboardType="phone-pad"
+          />
+        </>
+      )}
+
       <TextInput
-        placeholder="Username"
+        placeholder="Email"
+        value={email}
+        onChangeText={setEmail}
         style={styles.input}
-        value={username}
-        onChangeText={setUsername}
+        keyboardType="email-address"
       />
 
       <View style={styles.passwordContainer}>
         <TextInput
           placeholder="Password"
           secureTextEntry={!showPassword}
-          style={[styles.input, { flex: 1 }]}
           value={password}
           onChangeText={setPassword}
+          style={[styles.input, { flex: 1 }]}
         />
         <TouchableOpacity onPress={() => setShowPassword(!showPassword)}>
           <Text style={styles.togglePassword}>
@@ -86,15 +110,15 @@ export default function Login() {
         </TouchableOpacity>
       </View>
 
-      <TouchableOpacity style={styles.button} onPress={handleSubmit}>
-        <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Sign Up'}</Text>
+      <TouchableOpacity style={styles.button} onPress={handleAuth}>
+        <Text style={styles.buttonText}>{isLogin ? 'Login' : 'Register'}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity onPress={() => setIsLogin(!isLogin)}>
         <Text style={styles.toggleText}>
           {isLogin
-            ? "Don't have an account? Sign up"
-            : 'Already have an account? Log in'}
+            ? "Don't have an account? Register"
+            : 'Already have an account? Login'}
         </Text>
       </TouchableOpacity>
     </View>
@@ -104,33 +128,35 @@ export default function Login() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fff',
+    backgroundColor: '#e0f2f1',
     paddingHorizontal: 30,
     justifyContent: 'center',
   },
   header: {
-    fontSize: 32,
+    fontSize: 28,
     textAlign: 'center',
     marginBottom: 30,
-    color: '#00796b',
+    color: '#004d40',
     fontWeight: 'bold',
   },
   input: {
     borderWidth: 1,
-    borderColor: '#ddd',
+    borderColor: '#b2dfdb',
     padding: 12,
     borderRadius: 6,
     marginBottom: 15,
+    backgroundColor: '#ffffff',
     fontSize: 16,
   },
   passwordContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderColor: '#ddd',
+    borderColor: '#b2dfdb',
     borderWidth: 1,
     borderRadius: 6,
     marginBottom: 15,
     paddingRight: 10,
+    backgroundColor: '#ffffff',
   },
   togglePassword: {
     color: '#00796b',

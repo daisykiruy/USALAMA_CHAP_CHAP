@@ -9,14 +9,23 @@ import {
   Alert,
   FlatList,
 } from 'react-native';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
+
+// Define the Report type
+interface Report {
+  id: string;
+  title: string;
+  description: string;
+  type: string;
+  date: string;
+}
 
 export default function ReportsPage() {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [type, setType] = useState('');
   const [date, setDate] = useState('');
-  const [reports, setReports] = useState([
+  const [reports, setReports] = useState<Report[]>([
     {
       id: '1',
       title: 'Suspicious Vehicle',
@@ -32,7 +41,7 @@ export default function ReportsPage() {
       return;
     }
 
-    const newReport = {
+    const newReport: Report = {
       id: Date.now().toString(),
       title,
       description,
