@@ -1,19 +1,35 @@
 const EmergencyContact = require("../models/EmergencyContact");
 
-exports.addContact = async (req, res) => {
+// ✅ Save a new emergency contact
+exports.createContact = async (req, res) => {
   try {
-    const contact = await EmergencyContact.create(req.body);
+    const { name, phone, userId } = req.body;
+
+    if (!name || !phone || !userId) {
+      return res.status(400).json({ error: "Missing name, phone, or userId" });
+    }
+
+    const contact = await EmergencyContact.create({ name, phone, userId });
     res.status(201).json(contact);
   } catch (error) {
-    res.status(500).json({ error: "Error adding contact" });
+    console.error("Error saving contact:", error);
+    res.status(500).json({ error: "Error saving contact" });
   }
 };
 
-exports.getContacts = async (req, res) => {
+// ✅ Get all emergency contacts for a specific user
+exports.getContactsByUser = async (req, res) => {
   try {
-    const contacts = await EmergencyContact.findAll();
+    const { userId } = req.params;
+
+    if (!userId) {
+      return res.status(400).json({ error: "Missing userId parameter" });
+    }
+
+    const contacts = await EmergencyContact.findAll({ where: { userId } });
     res.json(contacts);
   } catch (error) {
+    console.error("Error fetching contacts:", error);
     res.status(500).json({ error: "Error fetching contacts" });
   }
 };
