@@ -12,7 +12,7 @@ const Report = sequelize.define("Report", {
     type: DataTypes.INTEGER,
     allowNull: false,
     references: {
-      model: User,
+      model: "Users", // Matches the actual table name in DB
       key: "id",
     },
   },
@@ -20,10 +20,9 @@ const Report = sequelize.define("Report", {
     type: DataTypes.TEXT,
     allowNull: false,
   },
-  createdAt: {
-    type: DataTypes.DATE,
-    defaultValue: DataTypes.NOW,
-  },
+}, {
+  timestamps: true, // enables createdAt and updatedAt automatically
+  tableName: "Reports", // optional but helps avoid pluralization issues
 });
 
 User.hasMany(Report, { foreignKey: "userId" });

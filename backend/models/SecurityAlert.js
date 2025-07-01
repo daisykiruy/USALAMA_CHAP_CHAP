@@ -1,7 +1,6 @@
-const { DataTypes } = require("sequelize"); 
-const sequelize = require("../config/database"); 
+const { DataTypes } = require("sequelize");
+const sequelize = require("../config/database");
 const User = require("./User");
-
 
 const SecurityAlert = sequelize.define("SecurityAlert", {
   id: {
@@ -24,6 +23,10 @@ const SecurityAlert = sequelize.define("SecurityAlert", {
   location: {
     type: DataTypes.STRING,
     allowNull: false,
+  },
+  town: {
+    type: DataTypes.STRING, // ✅ Add this line
+    allowNull: true,
   },
   timestamp: {
     type: DataTypes.DATE,

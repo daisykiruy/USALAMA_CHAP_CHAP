@@ -20,12 +20,13 @@ const EmergencyContact = sequelize.define("EmergencyContact", {
     type: DataTypes.STRING,
     allowNull: false,
   },
-  phone: {
+  phone: {               // ✅ Use this for clarity and consistency
     type: DataTypes.STRING,
     allowNull: false,
   },
 });
 
+// Relationships
 User.hasMany(EmergencyContact, { foreignKey: "userId" });
 EmergencyContact.belongsTo(User, { foreignKey: "userId" });
 

@@ -11,6 +11,7 @@ const EmergencyContact = require("./models/EmergencyContact");
 const SecurityAlert = require("./models/SecurityAlert");
 const Authority = require("./models/Authority");
 const Report = require("./models/Report");
+const ComAlert = require("./models/comalert"); // ✅ Added model (optional if needed here)
 
 // Import routes
 const authRoutes = require("./routes/authRoutes");
@@ -19,6 +20,7 @@ const emergencyContactRoutes = require("./routes/emergencyContactRoutes");
 const securityAlertRoutes = require("./routes/securityAlertRoutes");
 const authorityRoutes = require("./routes/authorityRoutes");
 const reportRoutes = require("./routes/reportRoutes");
+const comalertRoutes = require("./routes/comalertRoutes"); // ✅ Added this
 
 // Initialize Express app
 const app = express();
@@ -43,6 +45,7 @@ app.use("/api/emergency-contacts", emergencyContactRoutes);
 app.use("/api/security-alerts", securityAlertRoutes);
 app.use("/api/authorities", authorityRoutes);
 app.use("/api/reports", reportRoutes);
+app.use("/api/comalerts", comalertRoutes); // ✅ Register comalert routes
 
 // Handle unknown routes
 app.use((req, res) => {
