@@ -1,101 +1,157 @@
-import React, { useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  TouchableOpacity,
+  ActivityIndicator,
+  Dimensions,
+} from 'react-native';
 import { Ionicons, MaterialIcons, FontAwesome5 } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
+import { BarChart } from 'react-native-chart-kit';
+
+const screenWidth = Dimensions.get('window').width;
+
+type TownStat = {
+  town: string;
+  count: number;
+};
 
 export default function Analytics() {
   const router = useRouter();
+  const [counts, setCounts] = useState({ today: 0, week: 0, year: 0 });
+  const [topTowns, setTopTowns] = useState<TownStat[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const [showTodayDetails, setShowTodayDetails] = useState(false);
   const [showWeekDetails, setShowWeekDetails] = useState(false);
   const [showYearDetails, setShowYearDetails] = useState(false);
 
+  useFocusEffect(
+    useCallback(() => {
+      const fetchStats = async () => {
+        try {
+          const res = await fetch('http://192.168.1.2:5000/api/security-alerts/stats');
+          const data = await res.json();
+          setCounts({
+            today: data.today,
+            week: data.week,
+            year: data.year,
+          });
+          setTopTowns(data.topTowns as TownStat[]);
+        } catch (error) {
+          console.error('❌ Failed to fetch stats:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+
+      fetchStats();
+    }, [])
+  );
+
+  const chartConfig = {
+    backgroundGradientFrom: '#fff',
+    backgroundGradientTo: '#fff',
+    decimalPlaces: 0,
+    color: (opacity = 1) => `rgba(55, 71, 79, ${opacity})`,
+    labelColor: () => '#37474f',
+    style: { borderRadius: 16 },
+    propsForDots: { r: '6', strokeWidth: '2', stroke: '#ffa726' },
+  };
+
+  if (loading) {
+    return <ActivityIndicator style={{ marginTop: 50 }} size="large" color="#673ab7" />;
+  }
+
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 50 }}>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 60 }}>
       <Text style={styles.title}>📊 Analytics Dashboard</Text>
+      <Text style={styles.introText}>View the trend of alerts below:</Text>
 
-      <Text style={styles.introText}>
-        View the trend of alerts. Tap a card for more detailed insights.
-      </Text>
-      <Text style={styles.arrow}>👇</Text>
-
-      {/* Alert Summary Cards */}
-      <View style={styles.row}>
-        <TouchableOpacity
-          style={[styles.statCard, { backgroundColor: '#f06292' }]}
-          onPress={() => setShowTodayDetails(!showTodayDetails)}
-        >
-          <Ionicons name="sunny" size={30} color="#fff" />
-          <Text style={styles.statNumber}>17</Text>
-          <Text style={styles.statLabel}>Alerts today</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.statCard, { backgroundColor: '#64b5f6' }]}
-          onPress={() => setShowWeekDetails(!showWeekDetails)}
-        >
-          <MaterialIcons name="calendar-today" size={30} color="#fff" />
-          <Text style={styles.statNumber}>89</Text>
-          <Text style={styles.statLabel}>This Week</Text>
-        </TouchableOpacity>
-      </View>
-
+      {/* Stat Cards */}
       <TouchableOpacity
-        style={[styles.statCard, { backgroundColor: '#81c784', marginBottom: 15 }]}
-        onPress={() => setShowYearDetails(!showYearDetails)}
+        style={[styles.statCard, { backgroundColor: '#f06292' }]}
+        onPress={() => setShowTodayDetails(!showTodayDetails)}
       >
-        <FontAwesome5 name="calendar" size={30} color="#fff" />
-        <Text style={styles.statNumber}>312</Text>
-        <Text style={styles.statLabel}>This Year</Text>
+        <View style={styles.cardContent}>
+          <Ionicons name="sunny" size={30} color="#fff" />
+          <View style={styles.cardText}>
+            <Text style={styles.statNumber}>{counts.today}</Text>
+            <Text style={styles.statLabel}>Alerts Today</Text>
+          </View>
+        </View>
       </TouchableOpacity>
 
-      {/* Today Details */}
+      <TouchableOpacity
+        style={[styles.statCard, { backgroundColor: '#64b5f6' }]}
+        onPress={() => setShowWeekDetails(!showWeekDetails)}
+      >
+        <View style={styles.cardContent}>
+          <MaterialIcons name="calendar-today" size={30} color="#fff" />
+          <View style={styles.cardText}>
+            <Text style={styles.statNumber}>{counts.week}</Text>
+            <Text style={styles.statLabel}>Alerts This Week</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[styles.statCard, { backgroundColor: '#81c784' }]}
+        onPress={() => setShowYearDetails(!showYearDetails)}
+      >
+        <View style={styles.cardContent}>
+          <FontAwesome5 name="calendar" size={30} color="#fff" />
+          <View style={styles.cardText}>
+            <Text style={styles.statNumber}>{counts.year}</Text>
+            <Text style={styles.statLabel}>Alerts This Year</Text>
+          </View>
+        </View>
+      </TouchableOpacity>
+
+      {/* Expandable Sections */}
       {showTodayDetails && (
         <View style={styles.detailBox}>
-          <Text style={styles.detailHeader}>📍 Places With Most Alerts Today:</Text>
-          <Text style={styles.detailItem}>• Umoja Estate - 6 alerts</Text>
-          <Text style={styles.detailItem}>• CBD - 4 alerts</Text>
-
-          <Text style={styles.detailHeader}>📍 Least Alerts Today:</Text>
-          <Text style={styles.detailItem}>• Eldoville - 1 alert</Text>
+          <Text style={styles.detailHeader}>📍 Todays Breakdown:</Text>
+          <Text style={styles.detailItem}>Detailed breakdown coming soon...</Text>
         </View>
       )}
 
-      {/* Week Details */}
       {showWeekDetails && (
         <View style={styles.detailBox}>
           <Text style={styles.detailHeader}>🗓 Weekly Breakdown:</Text>
-          <Text style={styles.detailItem}>• Monday - 10</Text>
-          <Text style={styles.detailItem}>• Tuesday - 15</Text>
-          <Text style={styles.detailItem}>• Wednesday - 12</Text>
-          <Text style={styles.detailItem}>• Thursday - 8</Text>
-          <Text style={styles.detailItem}>• Friday - 18</Text>
-          <Text style={styles.detailItem}>• Saturday - 6</Text>
-          <Text style={styles.detailItem}>• Sunday - 20 (🔺 Most)</Text>
-
-          <Text style={styles.detailHeader}>📍 Top Alert Area This Week:</Text>
-          <Text style={styles.detailItem}>• Kibera</Text>
-
-          <Text style={styles.detailHeader}>📍 Least Alert Area:</Text>
-          <Text style={styles.detailItem}>• Karen</Text>
+          <Text style={styles.detailItem}>Top towns and trends below.</Text>
         </View>
       )}
 
-      {/* Year Details */}
       {showYearDetails && (
         <View style={styles.detailBox}>
           <Text style={styles.detailHeader}>📆 Yearly Summary:</Text>
-          <Text style={styles.detailItem}>• January - 22</Text>
-          <Text style={styles.detailItem}>• February - 18</Text>
-          <Text style={styles.detailItem}>• March - 35</Text>
-          <Text style={styles.detailItem}>• April - 41 (🔺 Most)</Text>
-          <Text style={styles.detailItem}>• May - 9 (🔻 Least)</Text>
+          <Text style={styles.detailItem}>Analytics for the year coming soon...</Text>
+        </View>
+      )}
 
-          <Text style={styles.detailHeader}>📍 Top Alert Area This Year:</Text>
-          <Text style={styles.detailItem}>• Mathare</Text>
-
-          <Text style={styles.detailHeader}>📍 Least Alert Area:</Text>
-          <Text style={styles.detailItem}>• Runda</Text>
+      {/* Top Towns Graph */}
+      {topTowns.length > 0 && (
+        <View style={{ marginTop: 20 }}>
+          <Text style={styles.chartTitle}>🏙️ Top Towns by Alert Frequency</Text>
+          <BarChart
+            data={{
+              labels: topTowns.map(t => t.town),
+              datasets: [{ data: topTowns.map(t => t.count) }],
+            }}
+            width={screenWidth - 40}
+            height={240}
+            fromZero
+            showValuesOnTopOfBars
+            yAxisLabel=""
+            yAxisSuffix=""
+            chartConfig={chartConfig}
+            style={{ borderRadius: 16, marginBottom: 30 }}
+          />
         </View>
       )}
 
@@ -123,39 +179,30 @@ const styles = StyleSheet.create({
     fontSize: 16,
     color: '#333',
     textAlign: 'center',
-    marginBottom: 5,
-    fontWeight: '500',
-    paddingHorizontal: 10,
-  },
-  arrow: {
-    fontSize: 24,
-    textAlign: 'center',
     marginBottom: 20,
-  },
-  row: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 15,
+    fontWeight: '500',
   },
   statCard: {
-    width: '48%',
     borderRadius: 12,
     padding: 15,
-    justifyContent: 'center',
-    alignItems: 'center',
+    marginBottom: 15,
     elevation: 3,
   },
+  cardContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  cardText: {
+    marginLeft: 15,
+  },
   statNumber: {
-    fontSize: 22,
+    fontSize: 24,
     fontWeight: 'bold',
     color: '#fff',
-    marginTop: 5,
   },
   statLabel: {
     color: '#fff',
-    fontSize: 14,
-    marginTop: 3,
-    textAlign: 'center',
+    fontSize: 16,
   },
   detailBox: {
     backgroundColor: '#e0f7fa',
@@ -167,8 +214,7 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: 'bold',
     color: '#006064',
-    marginTop: 10,
-    marginBottom: 5,
+    marginBottom: 8,
   },
   detailItem: {
     fontSize: 14,
@@ -176,11 +222,19 @@ const styles = StyleSheet.create({
     marginLeft: 10,
     marginBottom: 3,
   },
+  chartTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    textAlign: 'center',
+    marginBottom: 10,
+    color: '#37474f',
+  },
   backButton: {
     backgroundColor: '#ccc',
     padding: 12,
     borderRadius: 10,
     alignSelf: 'center',
+    marginBottom: 50,
   },
   backButtonText: {
     fontSize: 16,

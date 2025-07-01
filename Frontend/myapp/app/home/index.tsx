@@ -44,7 +44,8 @@ export default function Home() {
       };
 
       const token = await AsyncStorage.getItem('token');
-      const response = await fetch('http://10.110.41.12:5000/api/security-alerts/alert', {
+      console.log("📦 Payload being sent:", payload);
+      const response = await fetch('http://192.168.1.2:5000/api/security-alerts/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -56,7 +57,9 @@ export default function Home() {
       const data = await response.json();
 
       if (!response.ok) {
-        throw new Error(data.error || 'Failed to send alert');
+      console.log('❌ Backend error response:', data);
+      throw new Error(data?.error || 'Failed to send alert');
+
       }
 
       Alert.alert('✅ Alert sent successfully!');
@@ -89,11 +92,11 @@ export default function Home() {
       <Text style={styles.sectionHeader}>Explore Features</Text>
       <View style={styles.grid}>
         <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#e53935' }]}
+          style={[styles.card, { backgroundColor: '#EF6C00' }]}
           onPress={() => router.push('/alert')}
         >
           <Ionicons name="alert-circle" size={30} color="#fff" />
-          <Text style={styles.cardText}>Alerts</Text>
+          <Text style={styles.cardText}>Community alerts</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -102,22 +105,6 @@ export default function Home() {
         >
           <MaterialCommunityIcons name="chart-line" size={30} color="#fff" />
           <Text style={styles.cardText}>Analytics</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#00897b' }]}
-          onPress={() => router.push('/contacts')}
-        >
-          <Ionicons name="people" size={30} color="#fff" />
-          <Text style={styles.cardText}>Contacts</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#9c27b0' }]}
-          onPress={() => router.push('/admin')}
-        >
-          <Ionicons name="shield-checkmark" size={30} color="#fff" />
-          <Text style={styles.cardText}>Admin</Text>
         </TouchableOpacity>
 
         <TouchableOpacity
@@ -134,14 +121,6 @@ export default function Home() {
         >
           <Ionicons name="document-text-outline" size={30} color="#fff" />
           <Text style={styles.cardText}>Reports</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.card, { backgroundColor: '#6d4c41' }]}
-          onPress={() => router.push('/settings')}
-        >
-          <Ionicons name="settings" size={30} color="#fff" />
-          <Text style={styles.cardText}>Settings</Text>
         </TouchableOpacity>
       </View>
 

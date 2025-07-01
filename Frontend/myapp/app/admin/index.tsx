@@ -9,7 +9,7 @@ export default function AdminLogin() {
   const router = useRouter();
 
   const handleLogin = () => {
-    if (code === 'admin123') {
+    if (code === 'a') {
       router.push('/admin/dash');
     } else {
       Alert.alert('Access Denied', 'Invalid admin code.');

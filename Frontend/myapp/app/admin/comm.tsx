@@ -7,11 +7,11 @@ import {
   Alert,
   ScrollView,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function CreateAlertPage() {
   const [title, setTitle] = useState('');
   const [message, setMessage] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSendAlert = async () => {
     if (!title || !message) {
@@ -19,26 +19,31 @@ export default function CreateAlertPage() {
       return;
     }
 
-    const newAlert = {
-      id: Date.now().toString(),
-      title,
-      message,
-      date: new Date().toISOString().split('T')[0],
-    };
+    setLoading(true);
 
     try {
-      const storedAlerts = await AsyncStorage.getItem('community_alerts');
-      const parsedAlerts = storedAlerts ? JSON.parse(storedAlerts) : [];
+      const response = await fetch('http://192.168.1.2:5000/api/comalerts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ title, message }),
+      });
 
-      const updatedAlerts = [newAlert, ...parsedAlerts];
-      await AsyncStorage.setItem('community_alerts', JSON.stringify(updatedAlerts));
+      const data = await response.json();
 
-      Alert.alert('Success', 'Community alert sent!');
-      setTitle('');
-      setMessage('');
+      if (response.ok) {
+        Alert.alert('Success', 'Community alert sent!');
+        setTitle('');
+        setMessage('');
+      } else {
+        Alert.alert('Error', data.error || 'Failed to send alert.');
+      }
     } catch (error) {
-      Alert.alert('Error', 'Failed to save alert.');
-      console.error(error);
+      console.error('Send Alert Error:', error);
+      Alert.alert('Network Error', 'Could not connect to the server.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -60,8 +65,10 @@ export default function CreateAlertPage() {
         multiline
       />
 
-      <TouchableOpacity style={styles.button} onPress={handleSendAlert}>
-        <Text style={styles.buttonText}>Send Alert</Text>
+      <TouchableOpacity style={styles.button} onPress={handleSendAlert} disabled={loading}>
+        <Text style={styles.buttonText}>
+          {loading ? 'Sending...' : 'Send Alert'}
+        </Text>
       </TouchableOpacity>
     </ScrollView>
   );

@@ -1,24 +1,36 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import {Text, StyleSheet, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
+import LottieView from 'lottie-react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-export default function App() {
+const { width } = Dimensions.get('window');
+
+export default function SplashScreen() {
   const router = useRouter();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      router.replace('/login'); // go to login after 3 seconds
-    }, 3000);
+      router.replace('/landing');
+    }, 5000);
 
     return () => clearTimeout(timer);
   }, [router]);
 
   return (
-    <View style={styles.container}>
+    <LinearGradient colors={['#00bfa5', '#1de9b6', '#a7ffeb']} style={styles.container}>
       <Text style={styles.title}>USALAMA CHAP CHAP</Text>
-      <Text style={styles.title}>Secure our lives</Text>
-      <Text style={styles.subtitle}>Loading.....</Text>
-    </View>
+      <Text style={styles.tagline}>Secure Our Lives</Text>
+
+      <LottieView
+        source={require('../assets/loading.json')}
+        autoPlay
+        loop
+        style={styles.lottie}
+      />
+
+      <Text style={styles.loading}>Loading...</Text>
+    </LinearGradient>
   );
 }
 
@@ -27,16 +39,32 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: '#fff',
   },
   title: {
-    fontSize: 28,
+    fontSize: 32,
     fontWeight: 'bold',
+    color: '#fff',
     marginBottom: 10,
-    color: '#00796b',
+    paddingRight: 0, // ✅ Add this
+    textShadowColor: '#004d40',
+    textShadowOffset: { width: 2, height: 2 },
+    textShadowRadius: 4,
   },
-  subtitle: {
-    fontSize: 16,
-    color: '#555',
+  tagline: {
+    fontWeight: 'bold',
+    fontSize: 20,
+    color: '#046307',
+    marginBottom: 20,
+  },
+  lottie: {
+    width: width * 0.6,
+    height: width * 0.6,
+  },
+  loading: {
+    fontWeight: 'bold',
+    marginTop: 20,
+    fontSize: 22,
+    color: '#046307',
+   
   },
 });
