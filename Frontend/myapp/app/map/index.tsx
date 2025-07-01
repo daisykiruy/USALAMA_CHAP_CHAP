@@ -1,97 +1,108 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image } from 'react-native';
-import { Ionicons, MaterialIcons } from '@expo/vector-icons';
+import React, { useEffect, useState } from 'react';
+import { StyleSheet, View, Dimensions, ActivityIndicator, Alert as RNAlert } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
+
+type AlertType = {
+  id: number;
+  location: string;
+  timestamp: string;
+  userId: number;
+  type: string;
+};
 
 export default function MapsPage() {
-  const handleMockAction = () => {
-    alert('This will show real-time map data when integrated with Google Maps.');
-  };
+  const [alerts, setAlerts] = useState<AlertType[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  // 👇 Use your backend's local IP address directly
+  const API_URL = 'http://192.168.1.2:5000/api/security-alerts';
+
+  useEffect(() => {
+    const fetchAlerts = async () => {
+      try {
+        const response = await fetch(`${API_URL}/recent`);
+        const text = await response.text();
+
+        let data: any;
+        try {
+          data = JSON.parse(text);
+        } catch (err) {
+          console.error("❌ JSON parse error:", err);
+          throw new Error("Invalid JSON response from server.");
+        }
+
+        if (!Array.isArray(data)) {
+          console.error('❌ Expected array, got:', data);
+          throw new Error('Expected a list of alerts, but got something else.');
+        }
+
+        const validAlerts = data.filter(
+          (alert: AlertType) =>
+            typeof alert.location === 'string' &&
+            alert.location.includes(',') &&
+            !isNaN(parseFloat(alert.location.split(',')[0])) &&
+            !isNaN(parseFloat(alert.location.split(',')[1]))
+        );
+
+        setAlerts(validAlerts);
+      } catch (error: any) {
+        console.error('⚠️ Error fetching alerts:', error.message);
+        RNAlert.alert('Error', 'Failed to fetch alert locations.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAlerts();
+  }, []);
 
   return (
     <View style={styles.container}>
-      <Text style={styles.header}>📍 Community Alert Map</Text>
+      {loading ? (
+        <ActivityIndicator size="large" color="#00796b" style={{ marginTop: 50 }} />
+      ) : (
+        <MapView
+          style={styles.map}
+          initialRegion={{
+            latitude: alerts[0]?.location
+              ? parseFloat(alerts[0].location.split(',')[0])
+              : -1.286389,
+            longitude: alerts[0]?.location
+              ? parseFloat(alerts[0].location.split(',')[1])
+              : 36.817223,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          }}
+        >
+          {alerts.map((alert) => {
+            const [latStr, lonStr] = alert.location.split(',');
+            const latitude = parseFloat(latStr);
+            const longitude = parseFloat(lonStr);
 
-      <View style={styles.mapPlaceholder}>
-        <Image
-          source={{ uri: 'https://cdn-icons-png.flaticon.com/512/684/684908.png' }}
-          style={styles.mapIcon}
-        />
-        <Text style={styles.mapText}>Map will appear here</Text>
-        <Text style={styles.mapSubText}>Google Maps integration coming soon...</Text>
-      </View>
+            if (isNaN(latitude) || isNaN(longitude)) return null;
 
-      <View style={styles.actions}>
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#43a047' }]} onPress={handleMockAction}>
-          <MaterialIcons name="location-searching" size={24} color="#fff" />
-          <Text style={styles.buttonText}>Find Nearby Alerts</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity style={[styles.button, { backgroundColor: '#f4511e' }]} onPress={handleMockAction}>
-          <Ionicons name="alert-circle" size={24} color="#fff" />
-          <Text style={styles.buttonText}>View Active Hotspots</Text>
-        </TouchableOpacity>
-      </View>
+            return (
+              <Marker
+                key={alert.id}
+                coordinate={{ latitude, longitude }}
+                pinColor="red"
+                title={`Alert: ${alert.type}`}
+                description={`Sent: ${new Date(alert.timestamp).toLocaleString()}`}
+              />
+            );
+          })}
+        </MapView>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    padding: 24,
-    backgroundColor: '#e3f2fd',
     flex: 1,
   },
-  header: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#0d47a1',
-    textAlign: 'center',
-    marginBottom: 20,
-  },
-  mapPlaceholder: {
-    backgroundColor: '#fff8e1',
-    borderRadius: 12,
-    height: 250,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: 30,
-    borderWidth: 2,
-    borderColor: '#ffd54f',
-  },
-  mapIcon: {
-    width: 60,
-    height: 60,
-    marginBottom: 10,
-  },
-  mapText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#f57f17',
-  },
-  mapSubText: {
-    fontSize: 14,
-    color: '#616161',
-    marginTop: 5,
-  },
-  actions: {
-    marginTop: 10,
-  },
-  button: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 14,
-    borderRadius: 10,
-    marginBottom: 15,
-    justifyContent: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 2, height: 3 },
-    shadowOpacity: 0.2,
-    shadowRadius: 4,
-  },
-  buttonText: {
-    color: '#fff',
-    fontWeight: 'bold',
-    marginLeft: 10,
-    fontSize: 16,
+  map: {
+    width: Dimensions.get('window').width,
+    height: Dimensions.get('window').height,
   },
 });

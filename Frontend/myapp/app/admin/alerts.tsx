@@ -4,8 +4,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import io from 'socket.io-client';
 
-// Replace with your backend IP
-const SOCKET_URL = 'http://10.110.41.12:5000';
+const SOCKET_URL = 'http://192.168.1.2:5000';
+
 
 interface Alert {
   id: string;

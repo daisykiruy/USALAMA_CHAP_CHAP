@@ -1,125 +1,114 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, StyleSheet } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ScrollView,
+  ActivityIndicator,
+  FlatList,
+} from 'react-native';
 
 interface Report {
-  id: string;
-  title: string;
-  description: string;
-  type: string;
-  date: string;
+  id: number;
+  userId: number;
+  content: string;
+  createdAt: string;
 }
 
 export default function AdminReports() {
   const [reports, setReports] = useState<Report[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchReports = async () => {
-      const storedReports = await AsyncStorage.getItem('reports');
-      if (storedReports) {
-        setReports(JSON.parse(storedReports));
+      try {
+        const response = await fetch('http://192.168.1.2:5000/api/reports');
+        const data = await response.json();
+
+        if (response.ok) {
+          // Updated line: use data directly because backend returns an array, not an object
+          setReports(data);
+        } else {
+          console.error('Error fetching reports:', data.error || 'Unknown error');
+        }
+      } catch (error) {
+        console.error('Failed to fetch reports:', error);
+      } finally {
+        setLoading(false);
       }
     };
+
     fetchReports();
   }, []);
 
-  const renderReport = ({ item }: { item: Report }) => (
-    <View style={styles.card}>
-      <View style={styles.iconContainer}>
-        <MaterialCommunityIcons name="alert-decagram" size={30} color="#d84315" />
-      </View>
-
-      <View style={styles.content}>
-        <Text style={styles.title}>{item.title}</Text>
-        <Text style={styles.description}>{item.description}</Text>
-        <View style={styles.meta}>
-          <Text style={styles.typeBadge}>{item.type}</Text>
-          <Text style={styles.date}>📅 {item.date}</Text>
-        </View>
-      </View>
-    </View>
-  );
+  if (loading) {
+    return <ActivityIndicator style={{ marginTop: 50 }} size="large" color="#33691e" />;
+  }
 
   return (
-    <View style={styles.container}>
-      <Text style={styles.heading}>📁 Community Submitted Reports</Text>
+    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
+      <Text style={styles.header}>📁 Admin - User Reports</Text>
 
       {reports.length === 0 ? (
-        <Text style={styles.emptyText}>No reports found.</Text>
+        <Text style={styles.noReports}>No reports submitted yet.</Text>
       ) : (
         <FlatList
           data={reports}
-          keyExtractor={(item) => item.id}
-          renderItem={renderReport}
-          contentContainerStyle={{ paddingBottom: 40 }}
+          keyExtractor={(item) => item.id.toString()}
+          renderItem={({ item }) => (
+            <View style={styles.reportCard}>
+              <Text style={styles.reportText}>🆔 Report ID: {item.id}</Text>
+              <Text style={styles.reportText}>👤 User ID: {item.userId}</Text>
+              <Text style={styles.reportContent}>📝 {item.content}</Text>
+              <Text style={styles.reportDate}>📅 {new Date(item.createdAt).toLocaleString()}</Text>
+            </View>
+          )}
         />
       )}
-    </View>
+    </ScrollView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    flex: 1,
-    backgroundColor: '#fffde7',
     padding: 20,
-  },
-  heading: {
-    fontSize: 26,
-    fontWeight: 'bold',
-    marginBottom: 20,
-    textAlign: 'center',
-    color: '#e65100',
-  },
-  card: {
-    flexDirection: 'row',
-    backgroundColor: '#fff3e0',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
-    elevation: 3,
-    alignItems: 'flex-start',
-  },
-  iconContainer: {
-    marginRight: 10,
-    marginTop: 5,
-  },
-  content: {
+    backgroundColor: '#fffde7',
     flex: 1,
   },
-  title: {
-    fontSize: 16,
+  header: {
+    fontSize: 24,
     fontWeight: 'bold',
-    color: '#bf360c',
+    color: '#827717',
+    textAlign: 'center',
+    marginBottom: 20,
+  },
+  reportCard: {
+    backgroundColor: '#f1f8e9',
+    padding: 15,
+    borderRadius: 10,
+    marginBottom: 15,
+    borderColor: '#cddc39',
+    borderWidth: 1,
+  },
+  reportText: {
+    fontSize: 14,
+    color: '#33691e',
     marginBottom: 4,
   },
-  description: {
-    color: '#4e342e',
-    marginBottom: 8,
-    fontSize: 14,
-  },
-  meta: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-  },
-  typeBadge: {
-    backgroundColor: '#ffcc80',
-    color: '#e65100',
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 12,
-    fontSize: 12,
-    fontWeight: '600',
-  },
-  date: {
-    fontSize: 12,
-    color: '#6d4c41',
-  },
-  emptyText: {
-    textAlign: 'center',
-    color: '#999',
+  reportContent: {
     fontSize: 16,
-    marginTop: 60,
+    fontStyle: 'italic',
+    color: '#37474f',
+    marginBottom: 6,
+  },
+  reportDate: {
+    fontSize: 12,
+    color: '#757575',
+  },
+  noReports: {
+    textAlign: 'center',
+    fontSize: 16,
+    color: '#9e9e9e',
+    marginTop: 50,
   },
 });

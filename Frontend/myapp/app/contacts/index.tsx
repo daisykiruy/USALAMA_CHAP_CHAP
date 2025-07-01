@@ -12,8 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import io from 'socket.io-client';
 
-const SOCKET_URL = 'http://10.110.41.12:5000';
-const API_URL = 'http://10.110.41.12:5000/api/contact'; // Your backend API for contacts
+const SOCKET_URL = 'http://192.168.1.2:5000';
+const API_URL = 'http://192.168.1.2:5000/api/emergency-contacts';
 
 interface Contact {
   id: string;
@@ -47,37 +47,43 @@ export default function ContactsPage() {
         return;
       }
       setUserId(id);
+      fetchContacts(id);
     };
 
     initialize();
   }, []);
 
+  const fetchContacts = async (uid: string) => {
+    try {
+      const res = await fetch(`${API_URL}/${uid}`);
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to load contacts');
+      setContacts(data);
+    } catch (err: any) {
+      Alert.alert('Error', err.message);
+    }
+  };
+
   useEffect(() => {
     const setupSocket = async () => {
-      try {
-        const storedPhone = await AsyncStorage.getItem('userPhone');
-        if (!storedPhone) return;
+      const storedPhone = await AsyncStorage.getItem('userPhone');
+      if (!storedPhone) return;
 
-        const socket = io(SOCKET_URL);
+      const socket = io(SOCKET_URL);
 
-        socket.on('connect', () => {
-          console.log('🟢 Connected to socket');
-          socket.emit('join-room', `contact-${storedPhone}`);
-        });
+      socket.on('connect', () => {
+        socket.emit('join-room', `contact-${storedPhone}`);
+      });
 
-        socket.on('contact-alert', (data: IncomingAlert) => {
-          console.log('📩 Alert received:', data);
-          setReceivedAlerts((prev) => [data, ...prev]);
-          Alert.alert(
-            '🚨 Emergency Alert',
-            `From: ${data.contact.name}\nAt: ${data.alert.location}`
-          );
-        });
+      socket.on('contact-alert', (data: IncomingAlert) => {
+        setReceivedAlerts((prev) => [data, ...prev]);
+        Alert.alert(
+          '🚨 Emergency Alert',
+          `From: ${data.contact.name}\nAt: ${data.alert.location}`
+        );
+      });
 
-        return () => socket.disconnect();
-      } catch (error) {
-        console.error('Socket error:', error);
-      }
+      return () => socket.disconnect();
     };
 
     setupSocket();
@@ -94,49 +100,55 @@ export default function ContactsPage() {
       return;
     }
 
+    // Format phone to E.164 (for Twilio compatibility)
+    const formattedPhone = phone.startsWith('+')
+      ? phone
+      : `+254${phone.replace(/^0/, '')}`;
+
     if (editId) {
-      setContacts((prev) =>
-        prev.map((contact) =>
-          contact.id === editId ? { ...contact, name, phone } : contact
-        )
-      );
-      setEditId(null);
+      try {
+        const res = await fetch(`${API_URL}/${editId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ name, phone: formattedPhone }),
+        });
+
+        if (!res.ok) {
+          const data = await res.json();
+          throw new Error(data.error || 'Failed to update contact');
+        }
+
+        setContacts((prev) =>
+          prev.map((c) =>
+            c.id === editId ? { ...c, name, phone: formattedPhone } : c
+          )
+        );
+        setEditId(null);
+      } catch (err: any) {
+        Alert.alert('Error', err.message);
+        return;
+      }
     } else {
       if (contacts.length >= 3) {
         Alert.alert('Limit Reached', 'You can only save up to 3 contacts.');
         return;
       }
 
-      const newContact = {
-        id: Date.now().toString(),
-        name,
-        phone,
-      };
-
-      setContacts((prev) => [...prev, newContact]);
-      await AsyncStorage.setItem('userPhone', phone);
-
-      // Send to backend
       try {
-        const res = await fetch(`${API_URL}/contact`, {
+        const res = await fetch(API_URL, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            name,
-            phone,
-            userId, // Send the current logged-in user ID
-          }),
+          body: JSON.stringify({ name, phone: formattedPhone, userId }),
         });
 
         const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Failed to save contact');
 
-        if (!res.ok) {
-          throw new Error(data.error || 'Failed to save contact');
-        }
-
-        console.log('✅ Contact saved to backend:', data);
+        setContacts((prev) => [...prev, data]);
+        await AsyncStorage.setItem('userPhone', formattedPhone);
       } catch (err: any) {
         Alert.alert('Error', err.message);
+        return;
       }
     }
 
@@ -152,14 +164,23 @@ export default function ContactsPage() {
     setShowOptions(null);
   };
 
-  const handleDelete = (id: string) => {
-    Alert.alert('Confirm', 'Are you sure you want to delete this contact?', [
+  const handleDelete = async (id: string) => {
+    Alert.alert('Confirm', 'Delete this contact?', [
       { text: 'Cancel', style: 'cancel' },
       {
         text: 'Delete',
         style: 'destructive',
-        onPress: () =>
-          setContacts((prev) => prev.filter((c) => c.id !== id)),
+        onPress: async () => {
+          try {
+            const res = await fetch(`${API_URL}/${id}`, { method: 'DELETE' });
+            const data = await res.json();
+            if (!res.ok) throw new Error(data.error || 'Failed to delete');
+
+            setContacts((prev) => prev.filter((c) => c.id !== id));
+          } catch (err: any) {
+            Alert.alert('Error', err.message);
+          }
+        },
       },
     ]);
     setShowOptions(null);
@@ -198,7 +219,6 @@ export default function ContactsPage() {
         }
         renderItem={({ item }) => {
           const isOptionsVisible = showOptions === item.id;
-
           return (
             <View style={styles.contactCard}>
               <View style={styles.cardHeader}>
@@ -206,7 +226,6 @@ export default function ContactsPage() {
                   <Text style={styles.contactName}>{item.name}</Text>
                   <Text style={styles.contactPhone}>{item.phone}</Text>
                 </View>
-
                 <TouchableOpacity
                   onPress={() =>
                     setShowOptions(isOptionsVisible ? null : item.id)
@@ -219,7 +238,6 @@ export default function ContactsPage() {
                   />
                 </TouchableOpacity>
               </View>
-
               {isOptionsVisible && (
                 <View style={styles.actionButtons}>
                   <TouchableOpacity
