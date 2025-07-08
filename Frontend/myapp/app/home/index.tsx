@@ -45,7 +45,7 @@ export default function Home() {
 
       const token = await AsyncStorage.getItem('token');
       console.log("📦 Payload being sent:", payload);
-      const response = await fetch('http://192.168.1.2:5000/api/security-alerts/send', {
+      const response = await fetch('http://192.168.140.71:5000/api/security-alerts/send', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

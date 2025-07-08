@@ -12,8 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Ionicons } from '@expo/vector-icons';
 import io from 'socket.io-client';
 
-const SOCKET_URL = 'http://192.168.1.2:5000';
-const API_URL = 'http://192.168.1.2:5000/api/emergency-contacts';
+const SOCKET_URL = 'http://192.168.140.71:5000';
+const API_URL = 'http://192.168.140.71:5000/api/emergency-contacts';
 
 interface Contact {
   id: string;

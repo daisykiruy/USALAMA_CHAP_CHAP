@@ -20,7 +20,7 @@ export default function LoginScreen() {
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
 
-  const API_URL = 'http://192.168.1.2:5000/api/auth';
+  const API_URL = 'http://192.168.140.71:5000/api/auth';
 
   const handleAuth = async () => {
     if (!email || !password || (!isLogin && (!name || !phone))) {

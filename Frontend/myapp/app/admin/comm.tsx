@@ -22,7 +22,7 @@ export default function CreateAlertPage() {
     setLoading(true);
 
     try {
-      const response = await fetch('http://192.168.1.2:5000/api/comalerts', {
+      const response = await fetch('http://192.168.140.71:5000/api/comalerts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

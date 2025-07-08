@@ -15,7 +15,7 @@ export default function MapsPage() {
   const [loading, setLoading] = useState(true);
 
   // 👇 Use your backend's local IP address directly
-  const API_URL = 'http://192.168.1.2:5000/api/security-alerts';
+  const API_URL = 'http://192.168.140.71:5000/api/security-alerts';
 
   useEffect(() => {
     const fetchAlerts = async () => {

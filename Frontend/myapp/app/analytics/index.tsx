@@ -34,7 +34,7 @@ export default function Analytics() {
     useCallback(() => {
       const fetchStats = async () => {
         try {
-          const res = await fetch('http://192.168.1.2:5000/api/security-alerts/stats');
+          const res = await fetch('http://192.168.140.71:5000/api/security-alerts/stats');
           const data = await res.json();
           setCounts({
             today: data.today,

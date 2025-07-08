@@ -22,7 +22,7 @@ export default function AdminReports() {
   useEffect(() => {
     const fetchReports = async () => {
       try {
-        const response = await fetch('http://192.168.1.2:5000/api/reports');
+        const response = await fetch('http://192.168.140.71:5000/api/reports');
         const data = await response.json();
 
         if (response.ok) {

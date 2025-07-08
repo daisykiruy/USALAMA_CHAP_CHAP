@@ -22,7 +22,7 @@ export default function AlertPage() {
   useEffect(() => {
     const fetchAlerts = async () => {
       try {
-        const response = await fetch('http://192.168.1.2:5000/api/comalerts');
+        const response = await fetch('http://192.168.140.71:5000/api/comalerts');
         const data = await response.json();
 
         if (response.ok) {
